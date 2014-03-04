@@ -1,0 +1,16 @@
+<package>
+  <description brief="navigation_config">
+
+     navigation_config
+
+  </description>
+  <author>David!!</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/navigation_config</url>
+  <depend package="rospy"/>
+  <depend package="rviz"/>
+
+</package>
+
+
