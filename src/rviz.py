@@ -21,6 +21,14 @@ class RVizConfig:
         d.update(fields)
         self.data['Visualization Manager']['Displays'].append(d)
         
+    def set_tool_topic(self, name, topic):
+        for m in self.data['Visualization Manager']['Tools']:
+            if m.get('Class', '')==name:
+                print m
+                m['Topic'] = topic
+                print m
+                return
+        
     def add_model(self, parameter='robot_description'):
         self.add_display('RobotModel', 'rviz/RobotModel', fields={'Robot Description': parameter})
         
@@ -43,6 +51,9 @@ class RVizConfig:
     def add_pose(self, topic):
         self.add_display('Current Goal', 'rviz/Pose', topic)
         
+    def set_goal(self, topic):
+        self.set_tool_topic('rviz/SetGoal', topic)
+        
     def write(self, fn):
         f = open(fn, 'w')
         f.write(yaml.dump( self.data, default_flow_style=False))
@@ -63,14 +74,17 @@ for l in c.laser_scans():
 for topic, name in c.paths.items():
     r.add_path(topic, name)
     
+if c.goal:
+    r.add_pose(c.goal)
+    r.set_goal(c.goal)
+    
 #r.add_pose_array()
 #r.add_footprint('/move_base_node/global_costmap/foot/robot_footprint')
-#r.add_pose('/move_base_node/current_goal')
 
 fn = 'temp.rviz'
 r.write(fn)
 
 import subprocess
-#subprocess.call(['rosrun','rviz','rviz', '-d', fn])
+subprocess.call(['rosrun','rviz','rviz', '-d', fn])
 
 

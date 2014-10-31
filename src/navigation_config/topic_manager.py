@@ -1,12 +1,22 @@
 import rostopic
 import rosgraph
 import rosgraph.impl.graph
+import collections
 
 def topic_scan(config):
     g = rosgraph.impl.graph.Graph()
     g.update()
 
     topics = map(str.strip, g.nt_nodes)
+    subs = collections.defaultdict(list)
+    pubs = collections.defaultdict(list)
+    for edge in g.nt_all_edges:
+        src = edge.start.strip()
+        dest = edge.end.strip()
+        if src in topics:
+            subs[src] = dest
+        if dest in topics:
+            pubs[dest] = src
     
     for topic in topics:
         type_name = rostopic.get_topic_type(topic)[0]
@@ -23,6 +33,9 @@ def topic_scan(config):
                 config.maps[topic] = 'Map'
         elif type_name=='nav_msgs/Path':
             config.paths[topic] = 'Path'
+        elif type_name=='geometry_msgs/PoseStamped':
+            if topic in subs:
+                config.goal = topic
     
     
 """    
