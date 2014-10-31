@@ -3,11 +3,13 @@
 import yaml
 import rospy
 from navigation_config import Configuration
+from resource_retriever import get
+import tempfile
 
 class RVizConfig:
-    def __init__(self, base_filename=None):
-        if base_filename:
-            self.data = yaml.load( open(base_filename))
+    def __init__(self, base_file=None):
+        if base_file:
+            self.data = yaml.load( base_file )
         else:
             self.data = {}
             
@@ -24,9 +26,7 @@ class RVizConfig:
     def set_tool_topic(self, name, topic):
         for m in self.data['Visualization Manager']['Tools']:
             if m.get('Class', '')==name:
-                print m
                 m['Topic'] = topic
-                print m
                 return
         
     def add_model(self, parameter='robot_description'):
@@ -54,13 +54,10 @@ class RVizConfig:
     def set_goal(self, topic):
         self.set_tool_topic('rviz/SetGoal', topic)
         
-    def write(self, fn):
-        f = open(fn, 'w')
+    def write(self, f):
         f.write(yaml.dump( self.data, default_flow_style=False))
-        f.close()
-        
 
-r = RVizConfig('config/base.rviz')
+r = RVizConfig(get('package://navigation_config/config/base.rviz'))
 if rospy.has_param('/robot_description'):
     r.add_model()
     
@@ -81,10 +78,11 @@ if c.goal:
 #r.add_pose_array()
 #r.add_footprint('/move_base_node/global_costmap/foot/robot_footprint')
 
-fn = 'temp.rviz'
-r.write(fn)
+temp = tempfile.NamedTemporaryFile()
+r.write(temp)
+temp.flush()
 
 import subprocess
-subprocess.call(['rosrun','rviz','rviz', '-d', fn])
-
+subprocess.call(['rosrun','rviz','rviz', '-d', temp.name])
+temp.close()
 
